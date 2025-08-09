@@ -1,0 +1,36 @@
+/* src/pages/Home.css */
+.hero-section {
+  background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+}
+
+.features-section .card {
+  transition: transform 0.3s;
+}
+
+.features-section .card:hover {
+  transform: translateY(-10px);
+}
+
+/* src/pages/Home.css */
+/* Carousel Styling */
+.image-slider {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.carousel {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+  width: 5%;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .carousel img {
+    height: 300px !important;
+  }
+}
