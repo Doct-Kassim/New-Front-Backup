@@ -313,3 +313,34 @@
     width: 100%;
   }
 }
+
+.tip-card {
+  padding: 0.75rem;
+  background-color: #fff;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.tip-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.tip-detail-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: inherit; /* itakupa background ya project yako sasa hivi, si overlay mpya */
+  z-index: 1050; /* juu zaidi */
+}
+
+.tip-detail-content {
+  max-width: 900px;
+}
+
+@media (max-width: 576px) {
+  .tip-detail-content {
+    padding: 1rem !important;
+  }
+}

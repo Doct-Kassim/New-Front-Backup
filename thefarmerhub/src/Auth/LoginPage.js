@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 
 import { Modal, Form, Button } from 'react-bootstrap';
 
-import { FaUser, FaLock } from 'react-icons/fa';
+import { FaUser, FaLock, FaLeaf } from 'react-icons/fa';
 
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -38,7 +38,7 @@ const LoginPage = ({ show = true, onHide }) => {
       contentClassName="border-0 bg-transparent"
     >
       <div
-        className="p-4 rounded-4 shadow-lg"
+        className="p-4 rounded-4 shadow-lg position-relative"
         style={{
           background: 'rgba(255, 255, 255, 0.15)',
           backdropFilter: 'blur(15px)',
@@ -46,18 +46,29 @@ const LoginPage = ({ show = true, onHide }) => {
           color: '#1e1e1e'
         }}
       >
-        {/* Close Button */}
+        {/* Brand at Top Left */}
+        <div className="d-flex align-items-center mb-3">
+          <FaLeaf size={24} className="me-2 text-success" />
+          <span className="fw-bold fs-5">FarmerHub</span>
+        </div>
+
+        {/* Close Button at Top Right */}
         {onHide && (
-          <div className="d-flex justify-content-end">
-            <Button
-              variant="dark"
-              size="sm"
-              onClick={onHide}
-              className="rounded-end px-2 py-1"
-            >
-              ✕
-            </Button>
-          </div>
+          <Button
+            variant="dark"
+            size="sm"
+            onClick={onHide}
+            className="position-absolute top-0 end-0 m-2 rounded-circle"
+            style={{
+              width: '32px',
+              height: '32px',
+              padding: 0,
+              lineHeight: '1',
+              fontSize: '1.2rem'
+            }}
+          >
+            ✕
+          </Button>
         )}
 
         {/* Login Header */}

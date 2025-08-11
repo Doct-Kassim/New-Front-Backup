@@ -1,5 +1,5 @@
 // src/pages/TipsPage.js
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import './TipsPage.css';
 
@@ -7,23 +7,13 @@ const TipsPage = () => {
   const [tips, setTips] = useState([]);
   const [filteredTips, setFilteredTips] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    category: '',
-    author: '',
-    crop: '',
-    livestock: '',
-    equipment: ''
-  });
-  const videoRefs = useRef({});
+  const [filters, setFilters] = useState({ category: '' });
 
-  // Extract all unique values for filters
+  // For full screen detail page
+  const [selectedTip, setSelectedTip] = useState(null);
+
   const allCategories = [...new Set(tips.map(tip => tip.category))];
-  const allAuthors = [...new Set(tips.map(tip => tip.author_name))];
-  const allCrops = [...new Set(tips.map(tip => tip.crop).filter(Boolean))];
-  const allLivestock = [...new Set(tips.map(tip => tip.livestock).filter(Boolean))];
-  const allEquipment = [...new Set(tips.map(tip => tip.equipment).filter(Boolean))];
 
   useEffect(() => {
     const fetchTips = async () => {
@@ -44,35 +34,17 @@ const TipsPage = () => {
 
   useEffect(() => {
     const filtered = tips.filter(tip => {
-      // Search term filter (title and description)
-      const matchesSearch = searchTerm === '' || 
-        tip.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch =
+        searchTerm === '' ||
+        tip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tip.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Category filter
-      const matchesCategory = filters.category === '' || 
-        tip.category === filters.category;
-      
-      // Author filter
-      const matchesAuthor = filters.author === '' || 
-        tip.author_name === filters.author;
-      
-      // Crop filter
-      const matchesCrop = filters.crop === '' || 
-        (tip.crop && tip.crop === filters.crop);
-      
-      // Livestock filter
-      const matchesLivestock = filters.livestock === '' || 
-        (tip.livestock && tip.livestock === filters.livestock);
-      
-      // Equipment filter
-      const matchesEquipment = filters.equipment === '' || 
-        (tip.equipment && tip.equipment === filters.equipment);
-      
-      return matchesSearch && matchesCategory && matchesAuthor && 
-             matchesCrop && matchesLivestock && matchesEquipment;
+
+      const matchesCategory =
+        filters.category === '' || tip.category === filters.category;
+
+      return matchesSearch && matchesCategory;
     });
-    
+
     setFilteredTips(filtered);
   }, [tips, searchTerm, filters]);
 
@@ -85,26 +57,13 @@ const TipsPage = () => {
     });
   };
 
-  const toggleDescription = (tipId) => {
-    setExpandedDescriptions(prev => ({
-      ...prev,
-      [tipId]: !prev[tipId]
-    }));
+  const openTip = (tip) => {
+    setSelectedTip(tip);
+    window.scrollTo(0, 0); // Scroll top on open
   };
 
-  const truncateDescription = (text, isExpanded) => {
-    if (!text) return '';
-    return isExpanded ? text : `${text.substring(0, 50)}${text.length > 50 ? '...' : ''}`;
-  };
-
-  const handleVideoClick = (tipId) => {
-    const video = videoRefs.current[tipId];
-    if (video) {
-      video.muted = !video.muted;
-      if (video.paused) {
-        video.play().catch(e => console.log("Autoplay prevented:", e));
-      }
-    }
+  const closeTip = () => {
+    setSelectedTip(null);
   };
 
   const handleFilterChange = (filterName, value) => {
@@ -116,237 +75,216 @@ const TipsPage = () => {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setFilters({
-      category: '',
-      author: '',
-      crop: '',
-      livestock: '',
-      equipment: ''
-    });
+    setFilters({ category: '' });
   };
 
   return (
-    <div className="tips-container">
-      <div className="tips-header">
-        <h2>Farming Tips</h2>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div className="search-filters">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search tips..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <i className="bi bi-search"></i>
-        </div>
-
-        <div className="filter-section">
-          <select
-            value={filters.category}
-            onChange={(e) => handleFilterChange('category', e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {allCategories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
-
-          <select
-            value={filters.author}
-            onChange={(e) => handleFilterChange('author', e.target.value)}
-          >
-            <option value="">All Authors</option>
-            {allAuthors.map(author => (
-              <option key={author} value={author}>{author}</option>
-            ))}
-          </select>
-
-          <select
-            value={filters.crop}
-            onChange={(e) => handleFilterChange('crop', e.target.value)}
-          >
-            <option value="">All Crops</option>
-            {allCrops.map(crop => (
-              <option key={crop} value={crop}>{crop}</option>
-            ))}
-          </select>
-
-          <select
-            value={filters.livestock}
-            onChange={(e) => handleFilterChange('livestock', e.target.value)}
-          >
-            <option value="">All Livestock</option>
-            {allLivestock.map(livestock => (
-              <option key={livestock} value={livestock}>{livestock}</option>
-            ))}
-          </select>
-
-          <select
-            value={filters.equipment}
-            onChange={(e) => handleFilterChange('equipment', e.target.value)}
-          >
-            <option value="">All Equipment</option>
-            {allEquipment.map(equipment => (
-              <option key={equipment} value={equipment}>{equipment}</option>
-            ))}
-          </select>
-
-          <button onClick={clearFilters} className="clear-filters">
-            Clear Filters
-          </button>
-        </div>
-
-        <div className="results-count">
-          Showing {filteredTips.length} of {tips.length} tips
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="loading-spinner">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+    <div className="tips-container container py-4">
+      {!selectedTip && (
+        <>
+          <div className="tips-header mb-4">
+            <h2>Farming Tips</h2>
           </div>
-        </div>
-      ) : (
-        <div className="tips-feed">
-          {filteredTips.length > 0 ? (
-            filteredTips.map((tip) => (
-              <div className="tip-card" key={tip.id}>
-                {/* Tip card content remains the same as before */}
-                {/* Header with author and category */}
-                <div className="tip-header">
-                  <div className="author-info">
-                    <strong>{tip.author_name}</strong>
-                  </div>
-                  <span className="category-badge">{tip.category}</span>
-                </div>
 
-                {/* Media Section */}
-                {tip.media && tip.media.type === 'photos' && tip.media.urls.length > 0 && (
-                  <div id={`carouselTip${tip.id}`} className="carousel slide" data-bs-ride="carousel">
-                    {/* Carousel content remains the same */}
-                     {tip.media.urls.length > 1 && (
-                    <div className="carousel-indicators">
-                      {tip.media.urls.map((_, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          data-bs-target={`#carouselTip${tip.id}`}
-                          data-bs-slide-to={index}
-                          className={index === 0 ? 'active' : ''}
-                          aria-current={index === 0 ? 'true' : 'false'}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className="carousel-inner">
-                    {tip.media.urls.map((url, index) => (
-                      <div
-                        key={index}
-                        className={`carousel-item ${index === 0 ? 'active' : ''}`}
-                      >
-                        <img
-                          src={url}
-                          className="d-block w-100"
-                          alt={`${tip.title} - image ${index + 1}`}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/800x450?text=Image+Not+Available';
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {tip.media.urls.length > 1 && (
-                    <>
-                      <button
-                        className="carousel-control-prev"
-                        type="button"
-                        data-bs-target={`#carouselTip${tip.id}`}
-                        data-bs-slide="prev"
-                      >
-                        <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span className="visually-hidden">Previous</span>
-                      </button>
-                      <button
-                        className="carousel-control-next"
-                        type="button"
-                        data-bs-target={`#carouselTip${tip.id}`}
-                        data-bs-slide="next"
-                      >
-                        <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span className="visually-hidden">Next</span>
-                      </button>
-                    </>
-                  )}
-                  </div>
-                )}
+          {/* Search and Category Filter */}
+          <div className="row g-2 mb-4">
+            <div className="col-md-8">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Search knowledge base..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-                {tip.media && tip.media.type === 'video' && (
-                  <div className="video-wrapper">
-                    <video
-                      ref={el => videoRefs.current[tip.id] = el}
-                      controls
-                      className="tip-video"
-                      onClick={() => handleVideoClick(tip.id)}
-                      playsInline
-                    >
-                      <source src={tip.media.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                    <div className="volume-control" onClick={() => handleVideoClick(tip.id)}>
-                      {videoRefs.current[tip.id]?.muted ? (
-                        <i className="bi bi-volume-mute"></i>
-                      ) : (
-                        <i className="bi bi-volume-up"></i>
-                      )}
-                    </div>
-                  </div>
-                )}
+            <div className="col-md-4">
+              <select
+                className="form-select"
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+              >
+                <option value="">All Categories</option>
+                {allCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-                {/* Content Section */}
-                <div className="tip-content">
-                  <h3 className="tip-title">{tip.title}</h3>
-                  
-                  <div className="tip-description">
-                    <p>{truncateDescription(tip.description, expandedDescriptions[tip.id])}</p>
-                    {tip.description.length > 50 && (
-                      <button 
-                        onClick={() => toggleDescription(tip.id)}
-                        className="see-more-btn"
-                      >
-                        {expandedDescriptions[tip.id] ? 'See Less' : 'See More'}
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="tip-details">
-                    {tip.crop && <div className="detail-item"><strong>Crop:</strong> {tip.crop}</div>}
-                    {tip.livestock && <div className="detail-item"><strong>Livestock:</strong> {tip.livestock}</div>}
-                    {tip.equipment && <div className="detail-item"><strong>Equipment:</strong> {tip.equipment}</div>}
-                  </div>
-
-                  <div className="tip-dates">
-                    <span>Posted: {formatDate(tip.date_posted)}</span>
-                    <span>Updated: {formatDate(tip.last_updated)}</span>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="no-results">
-              <i className="bi bi-exclamation-circle"></i>
-              <p>No tips found matching your search criteria</p>
-              <button onClick={clearFilters} className="clear-filters">
+          <div className="mb-3 text-muted small">
+            Showing {filteredTips.length} of {tips.length} tips
+            {(searchTerm || filters.category) && (
+              <button
+                onClick={clearFilters}
+                className="btn btn-link btn-sm ms-2"
+              >
                 Clear Filters
               </button>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="text-center my-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="row g-3">
+              {filteredTips.length > 0 ? (
+                filteredTips.map((tip) => {
+                  let imgSrc = 'https://via.placeholder.com/300x200?text=No+Image';
+                  if (
+                    tip.media &&
+                    tip.media.type === 'photos' &&
+                    tip.media.urls.length > 0
+                  ) {
+                    imgSrc = tip.media.urls[0];
+                  }
+
+                  // Name to show on card is whichever of crop/livestock/equipment exists, fallback to category or title
+                  const nameOnCard = tip.crop || tip.livestock || tip.equipment || tip.category || tip.title;
+
+                  return (
+                    <div className="col-12 col-sm-6 col-md-4" key={tip.id}>
+                      <div
+                        className="tip-card d-flex flex-column align-items-center p-3 border rounded shadow-sm"
+                        onClick={() => openTip(tip)}
+                        style={{ cursor: 'pointer', minHeight: '250px' }}
+                      >
+                        <img
+                          src={imgSrc}
+                          alt={nameOnCard}
+                          className="mb-3"
+                          style={{
+                            width: '100%',
+                            height: '160px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                          }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/300x200?text=Image+Not+Available';
+                          }}
+                        />
+                        <div
+                          className="fw-bold text-center"
+                          style={{ fontSize: '1.1rem', userSelect: 'none' }}
+                        >
+                          {nameOnCard}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="alert alert-warning">
+                  <i className="bi bi-exclamation-circle"></i> No tips found matching your search criteria.
+                  <button onClick={clearFilters} className="btn btn-link btn-sm ms-2">
+                    Clear Filters
+                  </button>
+                </div>
+              )}
             </div>
           )}
+        </>
+      )}
+
+      {/* Fullscreen Detail Page */}
+      {selectedTip && (
+        <div className="tip-detail-fullscreen">
+          <div className="tip-detail-content container py-4">
+            <button
+              className="btn btn-outline-primary mb-4"
+              onClick={closeTip}
+              aria-label="Back to tips list"
+            >
+              ← Back
+            </button>
+
+            {/* Media */}
+            {selectedTip.media && selectedTip.media.type === 'photos' && selectedTip.media.urls.length > 0 && (
+              <div id={`detailCarousel${selectedTip.id}`} className="carousel slide mb-4" data-bs-ride="carousel">
+                {selectedTip.media.urls.length > 1 && (
+                  <div className="carousel-indicators">
+                    {selectedTip.media.urls.map((_, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        data-bs-target={`#detailCarousel${selectedTip.id}`}
+                        data-bs-slide-to={index}
+                        className={index === 0 ? 'active' : ''}
+                        aria-current={index === 0 ? 'true' : 'false'}
+                      />
+                    ))}
+                  </div>
+                )}
+                <div className="carousel-inner">
+                  {selectedTip.media.urls.map((url, index) => (
+                    <div key={index} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
+                      <img
+                        src={url}
+                        className="d-block w-100 rounded"
+                        alt={`${selectedTip.title} - image ${index + 1}`}
+                        style={{ maxHeight: '450px', objectFit: 'contain' }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/800x450?text=Image+Not+Available';
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {selectedTip.media.urls.length > 1 && (
+                  <>
+                    <button
+                      className="carousel-control-prev"
+                      type="button"
+                      data-bs-target={`#detailCarousel${selectedTip.id}`}
+                      data-bs-slide="prev"
+                    >
+                      <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span className="visually-hidden">Previous</span>
+                    </button>
+                    <button
+                      className="carousel-control-next"
+                      type="button"
+                      data-bs-target={`#detailCarousel${selectedTip.id}`}
+                      data-bs-slide="next"
+                    >
+                      <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span className="visually-hidden">Next</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {selectedTip.media && selectedTip.media.type === 'video' && (
+              <video controls className="w-100 mb-4 rounded" playsInline>
+                <source src={selectedTip.media.url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )}
+
+            <h3 className="mb-3">{selectedTip.title}</h3>
+
+            <p style={{ whiteSpace: 'pre-wrap' }}>{selectedTip.description}</p>
+
+            <div className="mb-3">
+              {selectedTip.crop && <div><strong>Crop:</strong> {selectedTip.crop}</div>}
+              {selectedTip.livestock && <div><strong>Livestock:</strong> {selectedTip.livestock}</div>}
+              {selectedTip.equipment && <div><strong>Equipment:</strong> {selectedTip.equipment}</div>}
+            </div>
+
+            <div className="text-muted small">
+              <span>Posted: {formatDate(selectedTip.date_posted)}</span> |{' '}
+              <span>Updated: {formatDate(selectedTip.last_updated)}</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
