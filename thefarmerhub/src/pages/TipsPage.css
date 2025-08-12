@@ -344,3 +344,34 @@
     padding: 1rem !important;
   }
 }
+
+/* Hii inapunguza nafasi kati ya mistari */
+.tip-description {
+  line-height: 1.4; /* kutoka default ~1.6 imepunguzwa */
+  font-size: 15px;
+  color: #333;
+}
+.tip-description {
+  line-height: 1.4;
+  font-size: 15px;
+  color: #333;
+}
+
+.tip-description p {
+  margin: 0 0 6px 0;
+}
+
+.tip-description img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 8px 0;
+}
+
+.tip-description img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 10px auto;
+  border-radius: 6px;
+}

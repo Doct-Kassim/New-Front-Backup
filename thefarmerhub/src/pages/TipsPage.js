@@ -9,11 +9,23 @@ const TipsPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ category: '' });
-
-  // For full screen detail page
   const [selectedTip, setSelectedTip] = useState(null);
 
   const allCategories = [...new Set(tips.map(tip => tip.category))];
+
+  // 🛠 Function ya kurekebisha image URLs zilizoko kwenye description
+  const fixImageUrls = (html) => {
+    if (!html) return "";
+    const backendURL = "http://localhost:8000"; // Badilisha kwenye production
+
+    return html.replace(/<img\s+[^>]*src="([^"]+)"/g, (match, src) => {
+      // Ikiwa src haina http au data:image, ongeza domain ya backend
+      if (!src.startsWith("http") && !src.startsWith("data:image")) {
+        return match.replace(src, backendURL + src);
+      }
+      return match;
+    });
+  };
 
   useEffect(() => {
     const fetchTips = async () => {
@@ -28,7 +40,6 @@ const TipsPage = () => {
         setLoading(false);
       }
     };
-
     fetchTips();
   }, []);
 
@@ -44,7 +55,6 @@ const TipsPage = () => {
 
       return matchesSearch && matchesCategory;
     });
-
     setFilteredTips(filtered);
   }, [tips, searchTerm, filters]);
 
@@ -59,7 +69,7 @@ const TipsPage = () => {
 
   const openTip = (tip) => {
     setSelectedTip(tip);
-    window.scrollTo(0, 0); // Scroll top on open
+    window.scrollTo(0, 0);
   };
 
   const closeTip = () => {
@@ -145,7 +155,6 @@ const TipsPage = () => {
                     imgSrc = tip.media.urls[0];
                   }
 
-                  // Name to show on card is whichever of crop/livestock/equipment exists, fallback to category or title
                   const nameOnCard = tip.crop || tip.livestock || tip.equipment || tip.category || tip.title;
 
                   return (
@@ -272,7 +281,11 @@ const TipsPage = () => {
 
             <h3 className="mb-3">{selectedTip.title}</h3>
 
-            <p style={{ whiteSpace: 'pre-wrap' }}>{selectedTip.description}</p>
+            {/* Description with responsive images */}
+            <div
+              className="tip-description"
+              dangerouslySetInnerHTML={{ __html: fixImageUrls(selectedTip.description) }}
+            ></div>
 
             <div className="mb-3">
               {selectedTip.crop && <div><strong>Crop:</strong> {selectedTip.crop}</div>}

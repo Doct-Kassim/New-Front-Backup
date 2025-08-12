@@ -11,28 +11,28 @@ import './Home.css';
 const carouselImages = [
   {
     id: 1,
-    src: "/images/farm1.png",
+    src: "/images/farm2.png",
     alt: "Kilimo cha kisasa",
     title: "Kilimo Bora",
     description: "Jifunze mbinu za kisasa za kilimo"
   },
   {
     id: 2,
-    src: "/images/farm2.png",
+    src: "/images/kuku.jpg",
     alt: "Ufugaji wa kisasa",
     title: "Ufugaji",
     description: "Mbinu bora za ufugaji wa mifugo"
   },
   {
     id: 3,
-    src: "/images/farm3.webp",
+    src: "/images/farm4.jpeg",
     alt: "Soko la mazao",
     title: "Soko Lenye Faida",
     description: "Pata habari za bei za soko"
   },
   {
     id: 4,
-    src: "/images/farm4.jpeg",
+    src: "/images/farm1.png",
     alt: "Teknolojia ya kilimo",
     title: "Teknolojia",
     description: "Vifaa vipya vya kilimo"

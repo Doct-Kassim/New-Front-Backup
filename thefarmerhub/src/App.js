@@ -17,8 +17,9 @@ import Home from './pages/Home';
 import HomePage from './pages/HomePage';
 import PestsandDiseasesPage from './pages/PestsandDisease';
 import TipsPage from './pages/TipsPage';
-import UserProfilePage from './pages/UserProfilePage';
+import TrainingTutorials from './pages/TrainingTutorials';  // Hii ndio import mpya
 import AppLayout from './components/layout/AppLayout';
+import UserProfilePage from './pages/UserProfilePage';
 
 function App() {
   return (
@@ -35,6 +36,9 @@ function App() {
           <Route path="/profile" element={<AppLayout><UserProfilePage /></AppLayout>} />
           <Route path="/edit-profile" element={<AppLayout><EditProfilePage /></AppLayout>} />
           <Route path="/forum" element={<Forum />} />
+
+          {/* Route mpya kwa Training Tutorials */}
+          <Route path="/training-tutorials" element={<AppLayout><TrainingTutorials /></AppLayout>} />
 
           {/* Login & Register nazo ziwe ndani ya layout */}
           <Route path="/login" element={<AppLayout><LoginPage /></AppLayout>} />
