@@ -1,6 +1,8 @@
 // src/pages/TipsPage.js
 import React, { useEffect, useState } from 'react';
 
+import Fuse from 'fuse.js';
+
 import './TipsPage.css';
 
 const TipsPage = () => {
@@ -13,13 +15,10 @@ const TipsPage = () => {
 
   const allCategories = [...new Set(tips.map(tip => tip.category))];
 
-  // 🛠 Function ya kurekebisha image URLs zilizoko kwenye description
   const fixImageUrls = (html) => {
     if (!html) return "";
-    const backendURL = "http://localhost:8000"; // Badilisha kwenye production
-
+    const backendURL = "http://localhost:8000";
     return html.replace(/<img\s+[^>]*src="([^"]+)"/g, (match, src) => {
-      // Ikiwa src haina http au data:image, ongeza domain ya backend
       if (!src.startsWith("http") && !src.startsWith("data:image")) {
         return match.replace(src, backendURL + src);
       }
@@ -27,6 +26,7 @@ const TipsPage = () => {
     });
   };
 
+  // Fetch tips from backend
   useEffect(() => {
     const fetchTips = async () => {
       try {
@@ -43,20 +43,21 @@ const TipsPage = () => {
     fetchTips();
   }, []);
 
+  // 🔍 Fuzzy search with Fuse.js
   useEffect(() => {
-    const filtered = tips.filter(tip => {
-      const matchesSearch =
-        searchTerm === '' ||
-        tip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tip.description.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!searchTerm) {
+      setFilteredTips(tips);
+      return;
+    }
 
-      const matchesCategory =
-        filters.category === '' || tip.category === filters.category;
-
-      return matchesSearch && matchesCategory;
+    const fuse = new Fuse(tips, {
+      keys: ['title', 'description', 'crop', 'livestock', 'equipment', 'category'],
+      threshold: 0.4, // lower = stricter, higher = looser match
     });
-    setFilteredTips(filtered);
-  }, [tips, searchTerm, filters]);
+
+    const results = fuse.search(searchTerm);
+    setFilteredTips(results.map(r => r.item));
+  }, [searchTerm, tips]);
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -92,8 +93,41 @@ const TipsPage = () => {
     <div className="tips-container container py-4">
       {!selectedTip && (
         <>
-          <div className="tips-header mb-4">
-            <h2>Farming Tips</h2>
+          {/* 🌟 Hero Section */}
+          <div 
+            className="hero-section text-center mb-4 d-flex flex-column justify-content-center align-items-center"
+            style={{
+              position: 'relative',
+              borderRadius: '12px',
+              minHeight: '220px',
+              padding: '60px 20px',
+              color: '#fff',
+              overflow: 'hidden'
+            }}
+          >
+            <div 
+              className="hero-overlay"
+              style={{
+                backgroundImage: "url('/images/backgoud5.jpeg')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                zIndex: 1
+              }}
+            ></div>
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <h1 className="hero-title mb-3" style={{ fontWeight: '700', fontSize: '2rem' }}>
+                Karibu kwenye Knowledge Hub
+              </h1>
+              <p className="hero-subtitle mb-0" style={{ fontSize: '1.1rem' }}>
+                Pata mbinu za kisasa za kilimo, ufugaji, na uvuvi.
+              </p>
+            </div>
           </div>
 
           {/* Search and Category Filter */}
@@ -107,7 +141,6 @@ const TipsPage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
             <div className="col-md-4">
               <select
                 className="form-select"
@@ -116,9 +149,7 @@ const TipsPage = () => {
               >
                 <option value="">All Categories</option>
                 {allCategories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
             </div>
@@ -214,7 +245,6 @@ const TipsPage = () => {
               ← Back
             </button>
 
-            {/* Media */}
             {selectedTip.media && selectedTip.media.type === 'photos' && selectedTip.media.urls.length > 0 && (
               <div id={`detailCarousel${selectedTip.id}`} className="carousel slide mb-4" data-bs-ride="carousel">
                 {selectedTip.media.urls.length > 1 && (
@@ -281,7 +311,6 @@ const TipsPage = () => {
 
             <h3 className="mb-3">{selectedTip.title}</h3>
 
-            {/* Description with responsive images */}
             <div
               className="tip-description"
               dangerouslySetInnerHTML={{ __html: fixImageUrls(selectedTip.description) }}

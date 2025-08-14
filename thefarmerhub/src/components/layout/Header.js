@@ -8,15 +8,15 @@ const Header = ({ toggleSidebar }) => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
       <Container fluid>
-        {/* Sidebar Toggle Button */}
+      
         <button className="btn btn-dark me-3" onClick={toggleSidebar}>
           <FaBars />
         </button>
 
-        {/* Mobile Menu Toggle */}
+       
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-        {/* Navigation Links */}
+        
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
             <Nav.Link href="/">
@@ -33,7 +33,7 @@ const Header = ({ toggleSidebar }) => {
             </Nav.Link>
           </Nav>
 
-          {/* Language Switcher */}
+          
           <Nav className="me-3">
             <NavDropdown
               title={
@@ -49,7 +49,7 @@ const Header = ({ toggleSidebar }) => {
             </NavDropdown>
           </Nav>
 
-          {/* Brand (Right side) */}
+          
           <Navbar.Brand href="/" className="d-flex align-items-center">
             <FaLeaf size={24} className="me-2 text-success" />
             <span className="fw-bold">FarmerHub</span>

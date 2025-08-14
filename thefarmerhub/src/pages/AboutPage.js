@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, Carousel } from 'react-bootstrap';
 
 const AboutPage = () => {
-  // Picha zitakuwa kwenye folder public/images na zitajiitwa hapa kama URLs
+ 
   const images = [
     '/images/kilimo.jpg',
     '/images/ufugaji.jpg',

@@ -60,15 +60,8 @@ const Home = () => {
                 farmer Dashboard
               </Button>
             </Col>
-            <Col md={6}>
-          
-              <img 
-                src="/images/farmer-hero.png"
-                alt="Farmer"
-                className="img-fluid rounded"
-                style={{ maxHeight: '400px' }}
-              />
-            </Col>
+
+           
           </Row>
         </Container>
       </section>

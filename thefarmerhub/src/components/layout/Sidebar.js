@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { Nav } from 'react-bootstrap';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
   FaLeaf,
@@ -10,13 +10,17 @@ import {
   FaChartLine,
   FaBook,
   FaSignInAlt,
-  FaUserPlus
+  FaUserPlus,
+  FaChevronDown,
+  FaChevronUp
 } from 'react-icons/fa';
 
 import { AuthContext } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen }) => {
   const { user, logoutUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const initials = user
     ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
@@ -27,28 +31,28 @@ const Sidebar = ({ isOpen }) => {
     top: '56px', // under header height
     left: 0,
     width: isOpen ? '280px' : '0',
-    height: 'calc(100vh - 56px - 40px)', // leave 40px margin bottom
+    height: 'calc(100vh - 56px - 40px)',
     marginBottom: '40px',
-    backgroundColor: 'transparent',  // transparent background
-    color: '#000', // black text
+    backgroundColor: 'transparent',
+    color: '#000',
     borderTopRightRadius: '12px',
     borderBottomRightRadius: '12px',
     padding: isOpen ? '1rem 1.25rem 0.75rem 1.25rem' : '0',
     overflowX: 'hidden',
     overflowY: isOpen ? 'auto' : 'hidden',
     transition: 'width 0.3s ease, padding 0.3s ease',
-    boxShadow: isOpen ? '2px 0 5px rgba(0,0,0,0.2)' : 'none', // subtle shadow
+    boxShadow: isOpen ? '2px 0 5px rgba(0,0,0,0.2)' : 'none',
     zIndex: 1030,
   };
 
   const userInfoStyle = {
-    marginBottom: '1.2rem',
+    marginBottom: '1rem',
     cursor: 'pointer',
-    color: '#000',  // black user text
+    color: '#000',
   };
 
   const linkStyle = { 
-    color: '#000',  // black text for links
+    color: '#000',
     padding: '0.6rem 0',
     display: 'flex', 
     alignItems: 'center', 
@@ -59,29 +63,43 @@ const Sidebar = ({ isOpen }) => {
   const iconStyle = { 
     marginRight: '10px', 
     minWidth: '20px', 
-    color: '#003366'  // dark blue icons
+    color: '#003366'
+  };
+
+  const profileCardStyle = {
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    padding: '0.75rem 1rem',
+    marginBottom: '1rem',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
   };
 
   return (
     <div style={sidebarStyle}>
       {isOpen && (
         <>
-          <div style={userInfoStyle}>
+          {/* User Info */}
+          <div style={userInfoStyle} onClick={() => setIsProfileOpen(!isProfileOpen)}>
             {user ? (
-              <div className="d-flex align-items-center">
-                <div
-                  className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
-                  style={{ width: '40px', height: '40px', fontWeight: 'bold' }}
-                >
-                  {initials}
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                  <div
+                    className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
+                    style={{ width: '40px', height: '40px', fontWeight: 'bold' }}
+                  >
+                    {initials}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>
+                      {user.first_name} {user.last_name}
+                    </div>
+                    <div style={{ fontSize: '0.85em', color: '#555' }}>
+                      {user.role}
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontWeight: 'bold' }}>
-                    {user.first_name} {user.last_name}
-                  </div>
-                  <div style={{ fontSize: '0.85em', color: '#555' }}>
-                    {user.role}
-                  </div>
+                  {isProfileOpen ? <FaChevronUp /> : <FaChevronDown />}
                 </div>
               </div>
             ) : (
@@ -89,6 +107,24 @@ const Sidebar = ({ isOpen }) => {
             )}
           </div>
 
+          {/* Expandable User Profile */}
+          {user && isProfileOpen && (
+            <div style={profileCardStyle}>
+              <p><strong>Username:</strong> {user.username}</p>
+              <p><strong>Email:</strong> {user.email}</p>
+              <p><strong>Phone:</strong> {user.phone}</p>
+              <p><strong>Address:</strong> {user.address}</p>
+              <p><strong>Gender:</strong> {user.gender}</p>
+              <button
+                className="btn btn-outline-primary btn-sm w-100 mt-2"
+                onClick={() => navigate('/edit-profile')}
+              >
+                Edit Profile
+              </button>
+            </div>
+          )}
+
+          {/* Navigation Links */}
           <Nav className="flex-column" style={{ fontSize: '1rem' }}>
             <Nav.Link as={Link} to="/HomePage" style={linkStyle}>
               <FaLeaf style={iconStyle} /> Dashboard
@@ -122,6 +158,7 @@ const Sidebar = ({ isOpen }) => {
             )}
           </Nav>
 
+          {/* Logout Button */}
           {user && (
             <div className="mt-auto pt-3 border-top border-secondary">
               <button className="btn btn-outline-dark w-100" onClick={logoutUser}>
