@@ -1,168 +1,124 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useEffect, useState, useRef, useContext } from "react";
 
-import { Card, Form, Button, InputGroup } from 'react-bootstrap';
+import { Button, Form, InputGroup } from "react-bootstrap";
 
-import { BsFillSendFill, BsEmojiSmile, BsPaperclip, BsFillMicFill, BsArrowLeft } from 'react-icons/bs';
+import { BsEmojiSmile, BsFillImageFill, BsFillCameraVideoFill, BsPaperclip } from "react-icons/bs";
 
-import Picker from 'emoji-picker-react';
+import EmojiPicker from "emoji-picker-react";
 
-import { useNavigate } from 'react-router-dom';
+import { AuthContext } from "../context/AuthContext";
 
-import { AuthContext } from '../context/AuthContext';
-
-const Forum = () => {
-  const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
+const Forum = ({ roomId = 1 }) => {
+  const { authTokens, user, authFetch } = useContext(AuthContext);
 
   const [messages, setMessages] = useState([]);
-  const [text, setText] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const scrollContainerRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const API_URL = `http://127.0.0.1:8000/api/forum/rooms/${roomId}/messages/`;
 
-  const handleSend = () => {
-    if (!user) {
-      alert('Please login to send messages.');
-      return;
-    }
-    if (text.trim()) {
-      const newMessage = {
-        text,
-        sender: user.first_name + ' ' + user.last_name,
-        time: new Date().toLocaleTimeString(),
-        initials: (user.first_name[0] + user.last_name[0]).toUpperCase(),
-      };
-      setMessages([...messages, newMessage]);
-      setText('');
+  // Fetch messages
+  const fetchMessages = async () => {
+    if (!authTokens) return;
+
+    try {
+      const res = await authFetch(API_URL);
+      const data = await res.json();
+      setMessages(data);
+    } catch (err) {
+      console.error("Error fetching messages", err);
     }
   };
 
-  const handleEmojiClick = (emojiData) => {
-    setText((prev) => prev + emojiData.emoji);
+  useEffect(() => {
+    fetchMessages();
+  }, [authTokens]);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Send message
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    if (!authTokens || !user) return;
+
+    try {
+      const res = await authFetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: newMessage,
+          sender: user.username, // or user.id if backend uses id
+          room: roomId
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessages([...messages, data]);
+        setNewMessage("");
+      } else {
+        console.error("Error sending message:", res.status);
+      }
+    } catch (err) {
+      console.error("Send message error:", err);
+    }
   };
 
   return (
-    <div
-      className="d-flex flex-column"
-      style={{ height: '100vh', position: 'relative', backgroundColor: '#e5ddd5' }}
-    >
-      <Card
-        className="flex-grow-1 rounded-0 d-flex flex-column"
-        style={{ backgroundColor: '#e5ddd5' }}
-      >
-        {/* Back arrow button */}
-        <div className="p-2 border-bottom bg-light d-flex align-items-center">
-          <Button
-            variant="link"
-            onClick={() => navigate(-1)}
-            style={{ fontSize: '1.5rem', color: '#333' }}
-          >
-            <BsArrowLeft />
-          </Button>
-          <h5 className="mb-0 ms-2">Community Forum</h5>
-        </div>
+    <div className="container-fluid p-0" style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+      
+      {/* Topbar */}
+      <div className="bg-success text-white p-3 d-flex align-items-center">
+        <h5 className="m-0">🌾 FarmerHub Forum</h5>
+      </div>
 
-        {/* Chat Scrollable Area */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-grow-1 overflow-auto px-3 py-2"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          {messages.map((msg, idx) => {
-            const isCurrentUser =
-              user && msg.sender === user.first_name + ' ' + user.last_name;
-
-            return (
-              <div
-                key={idx}
-                className={`mb-2 d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'}`}
-                style={{ alignItems: 'flex-start' }}
-              >
-                {/* Avatar always on left */}
-                <div
-                  className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                  style={{
-                    width: '35px',
-                    height: '35px',
-                    fontWeight: 'bold',
-                    flexShrink: 0,
-                    marginRight: '8px',
-                    order: 0,
-                  }}
-                >
-                  {msg.initials || msg.sender.charAt(0).toUpperCase()}
-                </div>
-
-                {/* Message bubble */}
-                <div
-                  className="rounded px-3 py-2 shadow-sm"
-                  style={{
-                    maxWidth: '75%',
-                    backgroundColor: isCurrentUser ? '#dcf8c6' : '#fff',
-                    color: '#000',
-                    order: 1,
-                  }}
-                >
-                  <strong>{msg.sender}</strong>
-                  <div>{msg.text}</div>
-                  <small className="text-muted">{msg.time}</small>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Emoji Picker */}
-        {showEmojiPicker && (
-          <div className="position-absolute bottom-100 mb-2 start-0">
-            <Picker onEmojiClick={handleEmojiClick} />
+      {/* Chat body */}
+      <div className="flex-grow-1 p-3" style={{ overflowY: "auto", backgroundColor: "#ece5dd" }}>
+        {messages.map((msg, index) => (
+          <div key={index} className={`d-flex mb-2 ${msg.sender === user?.username ? "justify-content-end" : "justify-content-start"}`}>
+            <div className={`p-2 rounded-3 shadow-sm ${msg.sender === user?.username ? "bg-success text-white" : "bg-white text-dark"}`} style={{ maxWidth: "60%" }}>
+              {msg.content && <p className="m-0">{msg.content}</p>}
+              {msg.image && <img src={msg.image} alt="img" className="img-fluid rounded mt-1" />}
+              {msg.video && <video src={msg.video} controls className="img-fluid rounded mt-1" />}
+              {msg.file && <a href={msg.file} target="_blank" rel="noreferrer">📎 {msg.file}</a>}
+              {msg.voice_note && <audio src={msg.voice_note} controls />}
+              <small className="d-block text-end text-muted" style={{ fontSize: "0.7rem" }}>
+                {new Date(msg.timestamp).toLocaleTimeString()}
+              </small>
+            </div>
           </div>
-        )}
-      </Card>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
 
-      {/* Input Bar Fixed at Bottom */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          width: '100%',
-          backgroundColor: '#f8f9fa',
-          borderTop: '1px solid #dee2e6',
-          padding: '0.5rem 1rem',
-          zIndex: 1050,
-        }}
-      >
+      {/* Input area */}
+      <Form onSubmit={sendMessage} className="p-2 bg-light">
         <InputGroup>
-          <Button
-            variant="outline-secondary"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          >
+          <Button variant="outline-secondary" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
             <BsEmojiSmile />
           </Button>
-          <Button variant="outline-secondary">
-            <BsPaperclip />
-          </Button>
+          {showEmojiPicker && (
+            <div style={{ position: "absolute", bottom: "60px", left: "20px", zIndex: 10 }}>
+              <EmojiPicker onEmojiClick={(e) => setNewMessage(newMessage + e.emoji)} />
+            </div>
+          )}
           <Form.Control
-            placeholder={user ? 'Andika ujumbe...' : 'Please login to chat'}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={!user}
-            style={{ borderRadius: '30px' }}
+            type="text"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
           />
-          <Button variant="outline-secondary">
-            <BsFillMicFill />
-          </Button>
-          <Button variant="success" onClick={handleSend} disabled={!user}>
-            <BsFillSendFill />
-          </Button>
+          <Button variant="outline-secondary"><BsFillImageFill /></Button>
+          <Button variant="outline-secondary"><BsFillCameraVideoFill /></Button>
+          <Button variant="outline-secondary"><BsPaperclip /></Button>
+          <Button type="submit" variant="success">Send</Button>
         </InputGroup>
-      </div>
+      </Form>
     </div>
   );
 };

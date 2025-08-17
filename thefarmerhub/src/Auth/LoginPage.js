@@ -18,12 +18,16 @@ const LoginPage = ({ show = true, onHide }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await loginUser(username, password);
-    if (success) {
-      navigate('/');
+    setError(''); // Clear previous error
+
+    const result = await loginUser(username, password);
+
+    if (result) {
+      // result contains tokens (access, refresh)
+      navigate('/forum'); // redirect to forum or home page
       if (onHide) onHide();
     } else {
-      setError('Invalid username or password');
+      setError('Invalid username or password. Please try again.');
     }
   };
 
@@ -46,39 +50,32 @@ const LoginPage = ({ show = true, onHide }) => {
           color: '#1e1e1e'
         }}
       >
-        {/* Brand at Top Left */}
+        {/* Brand */}
         <div className="d-flex align-items-center mb-3">
           <FaLeaf size={24} className="me-2 text-success" />
           <span className="fw-bold fs-5">FarmerHub</span>
         </div>
 
-        {/* Close Button at Top Right */}
+        {/* Close button */}
         {onHide && (
           <Button
             variant="dark"
             size="sm"
             onClick={onHide}
             className="position-absolute top-0 end-0 m-2 rounded-circle"
-            style={{
-              width: '32px',
-              height: '32px',
-              padding: 0,
-              lineHeight: '1',
-              fontSize: '1.2rem'
-            }}
+            style={{ width: '32px', height: '32px', padding: 0, lineHeight: '1', fontSize: '1.2rem' }}
           >
             ✕
           </Button>
         )}
 
-        {/* Login Header */}
+        {/* Header */}
         <h3 className="text-center fw-bold mb-4">Login</h3>
 
-        {error && (
-          <div className="alert alert-danger py-1 text-center">{error}</div>
-        )}
+        {/* Error */}
+        {error && <div className="alert alert-danger py-1 text-center">{error}</div>}
 
-        {/* Login Form */}
+        {/* Form */}
         <Form onSubmit={handleSubmit}>
           {/* Username */}
           <Form.Group className="mb-3" controlId="username">
@@ -91,9 +88,7 @@ const LoginPage = ({ show = true, onHide }) => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
-              <span className="input-group-text bg-white">
-                <FaUser />
-              </span>
+              <span className="input-group-text bg-white"><FaUser /></span>
             </div>
           </Form.Group>
 
@@ -108,24 +103,18 @@ const LoginPage = ({ show = true, onHide }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span className="input-group-text bg-white">
-                <FaLock />
-              </span>
+              <span className="input-group-text bg-white"><FaLock /></span>
             </div>
           </Form.Group>
 
           {/* Submit */}
-          <Button type="submit" className="w-100 bg-success border-success">
-            Login
-          </Button>
+          <Button type="submit" className="w-100 bg-success border-success">Login</Button>
         </Form>
 
-        {/* Register Link */}
+        {/* Register */}
         <div className="text-center mt-3">
           Don’t have an account?{' '}
-          <Link to="/register" className="fw-semibold text-decoration-none">
-            Register
-          </Link>
+          <Link to="/register" className="fw-semibold text-decoration-none">Register</Link>
         </div>
       </div>
     </Modal>

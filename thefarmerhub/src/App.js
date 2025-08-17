@@ -38,7 +38,7 @@ function App() {
           <Route path="/forum" element={<Forum />} />
 
           {/* Route mpya kwa Training Tutorials */}
-          <Route path="/training-tutorials" element={<AppLayout><TrainingTutorials /></AppLayout>} />
+          <Route path="/training-videos" element={<AppLayout><TrainingTutorials /></AppLayout>} />
 
           {/* Login & Register nazo ziwe ndani ya layout */}
           <Route path="/login" element={<AppLayout><LoginPage /></AppLayout>} />

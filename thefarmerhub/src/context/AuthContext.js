@@ -1,9 +1,9 @@
-// context/AuthContext.js
 import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  // Initialize tokens and user from localStorage
   const [authTokens, setAuthTokens] = useState(() =>
     localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null
   );
@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null
   );
 
+  // Login function
   const loginUser = async (username, password) => {
     try {
       const response = await fetch('http://localhost:8000/api/token/', {
@@ -22,17 +23,19 @@ export const AuthProvider = ({ children }) => {
 
       if (response.status === 200) {
         const data = await response.json();
-        const { access, refresh, ...userInfo } = data;
+        const { access, refresh } = data;
 
+        // Save tokens
         const authData = { access, refresh };
-
         localStorage.setItem('authTokens', JSON.stringify(authData));
-        localStorage.setItem('user', JSON.stringify(userInfo));
-
         setAuthTokens(authData);
+
+        // Extract user info from token (or backend response)
+        const userInfo = parseJwt(access);
+        localStorage.setItem('user', JSON.stringify(userInfo));
         setUser(userInfo);
 
-        return true;
+        return { access, refresh }; // return tokens for usage in Forum
       } else {
         return false;
       }
@@ -42,6 +45,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Logout function
   const logoutUser = () => {
     localStorage.removeItem('authTokens');
     localStorage.removeItem('user');
@@ -49,7 +53,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Update profile function
   const updateUser = async (formData) => {
+    if (!authTokens) return { success: false, message: 'Not authenticated' };
+
     const payload = {};
     for (const [key, value] of Object.entries(formData)) {
       if (value !== '') payload[key] = value;
@@ -88,6 +95,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Axios-like fetch wrapper with Authorization header
+  const authFetch = async (url, options = {}) => {
+    if (!authTokens) throw new Error('No auth token available');
+
+    const headers = options.headers ? { ...options.headers } : {};
+    headers['Authorization'] = `Bearer ${authTokens.access}`;
+
+    const opts = { ...options, headers };
+    return fetch(url, opts);
+  };
+
+  // Helper to parse JWT token for user info
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (err) {
+      return {};
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -95,7 +130,8 @@ export const AuthProvider = ({ children }) => {
         authTokens,
         loginUser,
         logoutUser,
-        updateUser, // <== add here
+        updateUser,
+        authFetch // <== use this for Forum or any API request
       }}
     >
       {children}

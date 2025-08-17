@@ -23,12 +23,12 @@ const Sidebar = ({ isOpen }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const initials = user
-    ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase()
     : '';
 
   const sidebarStyle = {
     position: 'fixed',
-    top: '56px', // under header height
+    top: '56px',
     left: 0,
     width: isOpen ? '280px' : '0',
     height: 'calc(100vh - 56px - 40px)',
@@ -87,14 +87,14 @@ const Sidebar = ({ isOpen }) => {
                     className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2"
                     style={{ width: '40px', height: '40px', fontWeight: 'bold' }}
                   >
-                    {initials}
+                    {initials || 'U'}
                   </div>
                   <div>
                     <div style={{ fontWeight: 'bold' }}>
-                      {user.first_name} {user.last_name}
+                      {user.first_name || 'Unknown'} {user.last_name || ''}
                     </div>
                     <div style={{ fontSize: '0.85em', color: '#555' }}>
-                      {user.role}
+                      {user.role || 'Farmer'}
                     </div>
                   </div>
                 </div>
@@ -110,11 +110,11 @@ const Sidebar = ({ isOpen }) => {
           {/* Expandable User Profile */}
           {user && isProfileOpen && (
             <div style={profileCardStyle}>
-              <p><strong>Username:</strong> {user.username}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Phone:</strong> {user.phone}</p>
-              <p><strong>Address:</strong> {user.address}</p>
-              <p><strong>Gender:</strong> {user.gender}</p>
+              <p><strong>Username:</strong> {user.username || 'N/A'}</p>
+              <p><strong>Email:</strong> {user.email || 'N/A'}</p>
+              <p><strong>Phone:</strong> {user.phone || 'N/A'}</p>
+              <p><strong>Address:</strong> {user.address || 'N/A'}</p>
+              <p><strong>Gender:</strong> {user.gender || 'N/A'}</p>
               <button
                 className="btn btn-outline-primary btn-sm w-100 mt-2"
                 onClick={() => navigate('/edit-profile')}
